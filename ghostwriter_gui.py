@@ -115,7 +115,7 @@ class AntiAntiPlagiarismApp:
 
         # Input text area
         self.input_text = tk.Text(self.root, height=10, wrap="word")
-        self.input_text.pack(fill="x", padx=10, pady=5)
+        self.input_text.pack(fill="both", expand=True, padx=10, pady=5)
 
         # Button frame
         button_frame = tk.Frame(self.root)
@@ -129,15 +129,15 @@ class AntiAntiPlagiarismApp:
 
         # Output text area
         self.output_text = tk.Text(self.root, height=10, wrap="word")
-        self.output_text.pack(fill="x", padx=10, pady=5)
+        self.output_text.pack(fill="both", expand=True, padx=10, pady=5)
 
         # Status message label
         self.status_text = tk.Label(self.root, text="", justify="center", font=("Segoe UI", 9), height=1)
         self.status_text.pack(fill="x", padx=10, pady=(0, 5))
 
         # Statistics label
-        self.stats_text = tk.Label(self.root, text="", justify="left", font=("Segoe UI", 10))
-        self.stats_text.pack(fill="x", padx=10)
+        self.stats_text = tk.Label(self.root, text="", justify="left", font=("Segoe UI", 10), anchor="nw")
+        self.stats_text.pack(fill="x", padx=10, pady=(0, 5))
         
         # Store references to themed widgets for updates
         self.themed_widgets = {
