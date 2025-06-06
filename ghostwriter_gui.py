@@ -50,6 +50,7 @@ class AntiAntiPlagiarismApp:
         # Initialize theme variables
         self.is_dark_mode = tk.BooleanVar(value=True)
         self.auto_copy_enabled = tk.BooleanVar(value=True)
+        self.enter_key_enabled = tk.BooleanVar(value=True)  # New toggle for Enter key
         
         # Define color schemes
         self.themes = {
@@ -100,6 +101,23 @@ class AntiAntiPlagiarismApp:
         )
         theme_toggle.pack(side="left")
         
+        # Center frame for Enter key toggle
+        center_frame = tk.Frame(settings_frame)
+        center_frame.pack(side="left", expand=True)
+        
+        enter_frame = tk.Frame(center_frame)
+        enter_frame.pack()
+        
+        tk.Label(enter_frame, text="Enter Key:", font=('Segoe UI', 10)).pack(side="left", padx=(20, 5))
+        enter_toggle = tk.Checkbutton(
+            enter_frame, 
+            text="Auto Encode", 
+            variable=self.enter_key_enabled,
+            command=self.toggle_enter_key,
+            font=('Segoe UI', 10)
+        )
+        enter_toggle.pack(side="left")
+        
         # Auto-copy toggle
         copy_frame = tk.Frame(settings_frame)
         copy_frame.pack(side="right")
@@ -116,6 +134,9 @@ class AntiAntiPlagiarismApp:
         # Input text area
         self.input_text = tk.Text(self.root, height=10, wrap="word")
         self.input_text.pack(fill="both", expand=True, padx=10, pady=5)
+        
+        # Bind Enter key events
+        self.setup_enter_key_bindings()
 
         # Button frame
         button_frame = tk.Frame(self.root)
@@ -141,9 +162,9 @@ class AntiAntiPlagiarismApp:
         
         # Store references to themed widgets for updates
         self.themed_widgets = {
-            'frames': [settings_frame, theme_frame, copy_frame, button_frame],
-            'labels': [theme_frame.winfo_children()[0], copy_frame.winfo_children()[0]],
-            'checkbuttons': [theme_frame.winfo_children()[1], copy_frame.winfo_children()[1]],
+            'frames': [settings_frame, theme_frame, center_frame, enter_frame, copy_frame, button_frame],
+            'labels': [theme_frame.winfo_children()[0], enter_frame.winfo_children()[0], copy_frame.winfo_children()[0]],
+            'checkbuttons': [theme_frame.winfo_children()[1], enter_frame.winfo_children()[1], copy_frame.winfo_children()[1]],
             'texts': [self.input_text, self.output_text],
             'stats_label': self.stats_text,
             'status_label': self.status_text
@@ -151,6 +172,40 @@ class AntiAntiPlagiarismApp:
         
         # Apply initial theme
         self.update_widget_colors()
+
+    def setup_enter_key_bindings(self):
+        """Setup Enter key bindings for the input text widget"""
+        # Bind Return (Enter) key
+        self.input_text.bind('<Return>', self.on_enter_key)
+        # Bind Shift+Return for line breaks when enter key is enabled
+        self.input_text.bind('<Shift-Return>', self.on_shift_enter)
+
+    def on_enter_key(self, event):
+        """Handle Enter key press in input text"""
+        if self.enter_key_enabled.get():
+            # Prevent default behavior (adding newline)
+            self.encode_action()
+            return 'break'
+        else:
+            # Allow default behavior (add newline)
+            return None
+
+    def on_shift_enter(self, event):
+        """Handle Shift+Enter key press in input text"""
+        if self.enter_key_enabled.get():
+            # Insert newline when Enter key auto-encode is enabled
+            self.input_text.insert(tk.INSERT, '\n')
+            return 'break'
+        else:
+            # Allow default behavior
+            return None
+
+    def toggle_enter_key(self):
+        """Toggle Enter key functionality and update status"""
+        if self.enter_key_enabled.get():
+            self.show_status_message("✓ Enter key auto-encode enabled (Shift+Enter for line breaks)")
+        else:
+            self.show_status_message("✓ Enter key auto-encode disabled (Enter for line breaks)")
 
     def update_ttk_style(self):
         """Update ttk widget styles based on current theme"""
