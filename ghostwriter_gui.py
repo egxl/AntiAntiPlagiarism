@@ -41,10 +41,10 @@ def get_text_statistics(original, modified):
     }
 
 
-class AntiAntiPlagiarismApp:
+class GhostWriterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Anti-Anti-Plagiarism Encoder")
+        self.root.title("GhostWriter")
         self.root.geometry("900x650")
         
         # Initialize theme variables
@@ -511,5 +511,5 @@ class AntiAntiPlagiarismApp:
 
 if __name__ == '__main__':
     root = tk.Tk()
-    app = AntiAntiPlagiarismApp(root)
+    app = GhostWriterApp(root)
     root.mainloop()
