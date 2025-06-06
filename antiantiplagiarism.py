@@ -1,3 +1,26 @@
+import subprocess
+import sys
+
+# Check for pyperclip and ask the user if they want to install it
+try:
+    import pyperclip
+    clipboard_available = True
+except ImportError:
+    clipboard_available = False
+    print("\nClipboard support (via pyperclip) is not available.")
+    choice = input("Do you want to install pyperclip for automatic copying? (Y/N): ").strip().lower()
+    if choice == "y":
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "pyperclip"])
+            import pyperclip
+            clipboard_available = True
+            print("\npyperclip installed successfully.\n")
+        except Exception as e:
+            print(f"Installation failed: {e}")
+            clipboard_available = False
+    else:
+        print("Continuing without clipboard support.\n")
+
 from random import randint
 from colorama import init, Fore, Style
 import time
@@ -18,10 +41,10 @@ magenta = Fore.MAGENTA + bright + dim
 
 FILE_IN = "aap_in.txt"
 FILE_OUT = "aap_out.txt"
-SINGLE_CHAR = False # Enable if you have a word limit and don't want aap to use many chars
+SINGLE_CHAR = False  # Enable if you have a word limit and don't want aap to use many chars
 
 def cls():
-    os.system('cls' if os.name=='nt' else 'clear')
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 def main():
     cls()
@@ -44,17 +67,17 @@ def main():
             input()
             main()
 
+    mod_words = []
 
     for word in input_text.split():
-
         if SINGLE_CHAR:
-            middle = int(len(word)/2)
-            mod_str += word[:middle] + "‎" + word[middle:] + " "
-            continue
+            middle = int(len(word) / 2)
+            mod_word = word[:middle] + "‎" + word[middle:]
+        else:
+            mod_word = "".join(char + "‎" for char in word)
+        mod_words.append(mod_word)
 
-        for char in word:
-            mod_str += char + "‎"
-        mod_str += " "
+    mod_str = " ".join(mod_words)
 
     f = open(FILE_OUT, "w", encoding="utf-8")
     f.write(mod_str)
@@ -62,6 +85,12 @@ def main():
     print(green + "\nResult saved into: {}".format(FILE_OUT))
     print(cyan + "\n{}".format(mod_str))
 
+    if clipboard_available:
+        try:
+            pyperclip.copy(mod_str)
+            print(blue + "\n(The result has been copied to the clipboard)")
+        except Exception as e:
+            print(red + "\nFailed to copy to clipboard:", e)
 
     input()
     main()
