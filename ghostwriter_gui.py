@@ -259,126 +259,192 @@ class AntiAntiPlagiarismApp:
         # Create a dialog to choose operation type
         batch_window = tk.Toplevel(self.root)
         batch_window.title("Batch Mode Options")
-        batch_window.geometry("400x300")
         batch_window.configure(bg=self.themes['dark' if self.is_dark_mode.get() else 'light']['bg'])
         batch_window.transient(self.root)
         batch_window.grab_set()
-        
-        # Center the window
-        batch_window.geometry("+%d+%d" % (self.root.winfo_rootx() + 50, self.root.winfo_rooty() + 50))
+        batch_window.resizable(False, False)  # Make window non-resizable for consistent layout
         
         colors = self.themes['dark' if self.is_dark_mode.get() else 'light']
         
+        # Main container with padding
+        main_frame = tk.Frame(batch_window, bg=colors['bg'])
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
         # Operation selection
-        tk.Label(batch_window, text="Select Operation:", font=('Segoe UI', 12, 'bold'),
-                bg=colors['bg'], fg=colors['label_fg']).pack(pady=10)
+        tk.Label(main_frame, text="Select Operation:", font=('Segoe UI', 12, 'bold'),
+                bg=colors['bg'], fg=colors['label_fg']).pack(pady=(0, 10))
         
         operation_var = tk.StringVar(value="encode")
         
-        tk.Radiobutton(batch_window, text="Encode Files", variable=operation_var, value="encode",
+        tk.Radiobutton(main_frame, text="Encode Files", variable=operation_var, value="encode",
                       font=('Segoe UI', 10), bg=colors['bg'], fg=colors['label_fg'],
-                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=5)
+                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=2, anchor="w")
         
-        tk.Radiobutton(batch_window, text="Decode Files", variable=operation_var, value="decode",
+        tk.Radiobutton(main_frame, text="Decode Files", variable=operation_var, value="decode",
                       font=('Segoe UI', 10), bg=colors['bg'], fg=colors['label_fg'],
-                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=5)
+                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=2, anchor="w")
         
         # Input selection
-        tk.Label(batch_window, text="Select Input:", font=('Segoe UI', 12, 'bold'),
+        tk.Label(main_frame, text="Select Input:", font=('Segoe UI', 12, 'bold'),
                 bg=colors['bg'], fg=colors['label_fg']).pack(pady=(20, 10))
         
         input_var = tk.StringVar(value="files")
         
-        tk.Radiobutton(batch_window, text="Select Multiple Files", variable=input_var, value="files",
+        tk.Radiobutton(main_frame, text="Select Multiple Files", variable=input_var, value="files",
                       font=('Segoe UI', 10), bg=colors['bg'], fg=colors['label_fg'],
-                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=5)
+                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=2, anchor="w")
         
-        tk.Radiobutton(batch_window, text="Select Folder", variable=input_var, value="folder",
+        tk.Radiobutton(main_frame, text="Select Folder", variable=input_var, value="folder",
                       font=('Segoe UI', 10), bg=colors['bg'], fg=colors['label_fg'],
-                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=5)
+                      selectcolor=colors['text_bg'], activebackground=colors['bg']).pack(pady=2, anchor="w")
+        
+        # File selection area
+        file_frame = tk.Frame(main_frame, bg=colors['bg'])
+        file_frame.pack(fill="x", pady=(20, 0))
+        
+        tk.Label(file_frame, text="Selected Files:", font=('Segoe UI', 10, 'bold'),
+                bg=colors['bg'], fg=colors['label_fg']).pack(anchor="w")
+        
+        # Listbox to show selected files
+        list_frame = tk.Frame(file_frame, bg=colors['bg'])
+        list_frame.pack(fill="x", pady=(5, 10))
+        
+        files_listbox = tk.Listbox(list_frame, height=4, bg=colors['text_bg'], fg=colors['text_fg'],
+                                  selectbackground='#0078d4', font=('Segoe UI', 9))
+        scrollbar = tk.Scrollbar(list_frame, orient="vertical")
+        files_listbox.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=files_listbox.yview)
+        
+        files_listbox.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Store selected files
+        selected_files = []
+        
+        def update_file_display():
+            files_listbox.delete(0, tk.END)
+            if selected_files:
+                for file_path in selected_files:
+                    filename = os.path.basename(file_path)
+                    files_listbox.insert(tk.END, filename)
+            else:
+                files_listbox.insert(tk.END, "No files selected")
+        
+        def select_files():
+            nonlocal selected_files
+            if input_var.get() == "files":
+                # Select multiple files
+                file_paths = filedialog.askopenfilenames(
+                    title=f"Select files to {operation_var.get()}",
+                    filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                    parent=batch_window
+                )
+                if file_paths:  # Only update if files were selected (not cancelled)
+                    selected_files = list(file_paths)
+            else:
+                # Select folder
+                folder = filedialog.askdirectory(
+                    title=f"Select folder containing files to {operation_var.get()}",
+                    parent=batch_window
+                )
+                if folder:  # Only update if folder was selected (not cancelled)
+                    selected_files = []
+                    for filename in os.listdir(folder):
+                        if filename.endswith(".txt"):
+                            selected_files.append(os.path.join(folder, filename))
+            
+            update_file_display()
+        
+        # Select files button
+        ttk.Button(file_frame, text="Browse Files", command=select_files).pack(pady=(0, 10))
+        
+        # Initialize display
+        update_file_display()
         
         # Buttons
-        button_frame = tk.Frame(batch_window, bg=colors['bg'])
-        button_frame.pack(pady=20)
+        button_frame = tk.Frame(main_frame, bg=colors['bg'])
+        button_frame.pack(pady=(10, 0))
         
         def start_batch():
+            if not selected_files:
+                messagebox.showwarning("No Files Selected", "Please select files before starting batch processing.", parent=batch_window)
+                return
+            
             batch_window.destroy()
-            self.execute_batch_operation(operation_var.get(), input_var.get())
+            self.execute_batch_operation(operation_var.get(), selected_files)
         
-        ttk.Button(button_frame, text="Start", command=start_batch).pack(side="left", padx=10)
+        ttk.Button(button_frame, text="Start Processing", command=start_batch).pack(side="left", padx=10)
         ttk.Button(button_frame, text="Cancel", command=batch_window.destroy).pack(side="left", padx=10)
+        
+        # Set proper window size after all widgets are created
+        batch_window.update_idletasks()  # Ensure all widgets are rendered
+        width = 450
+        height = 480
+        x = self.root.winfo_rootx() + (self.root.winfo_width() // 2) - (width // 2)
+        y = self.root.winfo_rooty() + (self.root.winfo_height() // 2) - (height // 2)
+        batch_window.geometry(f"{width}x{height}+{x}+{y}")
 
-    def execute_batch_operation(self, operation, input_type):
+    def execute_batch_operation(self, operation, selected_files):
         # Get script directory for output folders
         script_dir = os.path.dirname(os.path.abspath(__file__))
         
-        # Create output directories
-        if operation == "encode":
-            output_dir = os.path.join(script_dir, "Encoded Output")
-        else:
-            output_dir = os.path.join(script_dir, "Decoded Output")
-        
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Get input files
-        files_to_process = []
-        
-        if input_type == "files":
-            # Select multiple files
-            file_paths = filedialog.askopenfilenames(
-                title=f"Select files to {operation}",
-                filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
-            )
-            files_to_process = [(fp, os.path.basename(fp)) for fp in file_paths]
-        else:
-            # Select folder
-            folder = filedialog.askdirectory(title=f"Select folder containing files to {operation}")
-            if folder:
-                for filename in os.listdir(folder):
-                    if filename.endswith(".txt"):
-                        filepath = os.path.join(folder, filename)
-                        files_to_process.append((filepath, filename))
-        
-        if not files_to_process:
-            messagebox.showwarning("No Files", "No files selected or found.")
-            return
-        
-        # Process files
+        # Process files first, only create output directory if we have results
         results = []
         errors = []
         
-        for filepath, filename in files_to_process:
+        for filepath in selected_files:
             try:
                 with open(filepath, 'r', encoding="utf-8") as f:
                     content = f.read()
                 
                 if operation == "encode":
                     processed_content = encode_text(content)
+                    filename = os.path.basename(filepath)
                     new_filename = f"encoded_{filename}"
                 else:
                     processed_content = decode_text(content)
+                    filename = os.path.basename(filepath)
                     new_filename = f"decoded_{filename}"
                 
-                output_path = os.path.join(output_dir, new_filename)
-                with open(output_path, 'w', encoding="utf-8") as f:
-                    f.write(processed_content)
-                
-                results.append(new_filename)
+                results.append((processed_content, new_filename))
                 
             except Exception as e:
+                filename = os.path.basename(filepath)
                 errors.append(f"{filename}: {str(e)}")
         
-        # Show results
+        # Only create output directory and save files if we have successful results
         if results:
-            success_msg = f"Successfully {operation}d {len(results)} files.\nOutput saved to: {output_dir}"
-            if errors:
-                error_msg = f"\n\nErrors encountered:\n" + "\n".join(errors[:5])
-                if len(errors) > 5:
-                    error_msg += f"\n... and {len(errors) - 5} more errors"
-                messagebox.showinfo("Batch Complete", success_msg + error_msg)
+            if operation == "encode":
+                output_dir = os.path.join(script_dir, "Encoded Output")
             else:
-                messagebox.showinfo("Batch Complete", success_msg)
-                self.show_status_message(f"✓ Batch {operation} completed: {len(results)} files processed")
+                output_dir = os.path.join(script_dir, "Decoded Output")
+            
+            os.makedirs(output_dir, exist_ok=True)
+            
+            # Save all processed files
+            saved_files = []
+            for processed_content, new_filename in results:
+                try:
+                    output_path = os.path.join(output_dir, new_filename)
+                    with open(output_path, 'w', encoding="utf-8") as f:
+                        f.write(processed_content)
+                    saved_files.append(new_filename)
+                except Exception as e:
+                    errors.append(f"{new_filename}: Failed to save - {str(e)}")
+            
+            # Show results
+            if saved_files:
+                success_msg = f"Successfully {operation}d {len(saved_files)} files.\nOutput saved to: {output_dir}"
+                if errors:
+                    error_msg = f"\n\nErrors encountered:\n" + "\n".join(errors[:5])
+                    if len(errors) > 5:
+                        error_msg += f"\n... and {len(errors) - 5} more errors"
+                    messagebox.showinfo("Batch Complete", success_msg + error_msg)
+                else:
+                    messagebox.showinfo("Batch Complete", success_msg)
+                    self.show_status_message(f"✓ Batch {operation} completed: {len(saved_files)} files processed")
+            else:
+                messagebox.showerror("Batch Failed", "No files were saved successfully.\n\nErrors:\n" + "\n".join(errors[:10]))
         else:
             messagebox.showerror("Batch Failed", "No files were processed successfully.\n\nErrors:\n" + "\n".join(errors[:10]))
 
