@@ -49,7 +49,7 @@ class AntiAntiPlagiarismApp:
         
         # Initialize theme variables
         self.is_dark_mode = tk.BooleanVar(value=True)
-        self.auto_copy_enabled = tk.BooleanVar(value=False)
+        self.auto_copy_enabled = tk.BooleanVar(value=True)
         
         # Define color schemes
         self.themes = {
@@ -135,9 +135,9 @@ class AntiAntiPlagiarismApp:
         self.status_text = tk.Label(self.root, text="", justify="center", font=("Segoe UI", 9), height=1)
         self.status_text.pack(fill="x", padx=10, pady=(0, 5))
 
-        # Statistics label
-        self.stats_text = tk.Label(self.root, text="", justify="left", font=("Segoe UI", 10), anchor="nw")
-        self.stats_text.pack(fill="x", padx=10, pady=(0, 5))
+        # Statistics label with centered positioning
+        self.stats_text = tk.Label(self.root, text="", justify="center", font=("Segoe UI", 10), anchor="center")
+        self.stats_text.pack(fill="x", padx=10, pady=10)
         
         # Store references to themed widgets for updates
         self.themed_widgets = {
