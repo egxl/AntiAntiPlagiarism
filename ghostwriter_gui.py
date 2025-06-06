@@ -131,6 +131,10 @@ class AntiAntiPlagiarismApp:
         self.output_text = tk.Text(self.root, height=10, wrap="word")
         self.output_text.pack(fill="x", padx=10, pady=5)
 
+        # Status message label
+        self.status_text = tk.Label(self.root, text="", justify="center", font=("Segoe UI", 9), height=1)
+        self.status_text.pack(fill="x", padx=10, pady=(0, 5))
+
         # Statistics label
         self.stats_text = tk.Label(self.root, text="", justify="left", font=("Segoe UI", 10))
         self.stats_text.pack(fill="x", padx=10)
@@ -141,7 +145,8 @@ class AntiAntiPlagiarismApp:
             'labels': [theme_frame.winfo_children()[0], copy_frame.winfo_children()[0]],
             'checkbuttons': [theme_frame.winfo_children()[1], copy_frame.winfo_children()[1]],
             'texts': [self.input_text, self.output_text],
-            'stats_label': self.stats_text
+            'stats_label': self.stats_text,
+            'status_label': self.status_text
         }
         
         # Apply initial theme
@@ -188,6 +193,9 @@ class AntiAntiPlagiarismApp:
         
         # Update stats label
         self.themed_widgets['stats_label'].configure(bg=colors['bg'], fg=colors['label_fg'])
+        
+        # Update status label
+        self.themed_widgets['status_label'].configure(bg=colors['bg'], fg=colors['label_fg'])
 
     def toggle_theme(self):
         """Toggle between dark and light themes"""
@@ -195,12 +203,18 @@ class AntiAntiPlagiarismApp:
         self.update_ttk_style()
         self.update_widget_colors()
 
+    def show_status_message(self, message, duration=2000):
+        """Show a temporary status message"""
+        self.status_text.config(text=message)
+        # Clear the message after specified duration
+        self.root.after(duration, lambda: self.status_text.config(text=""))
+
     def auto_copy_if_enabled(self, content):
         """Automatically copy content to clipboard if auto-copy is enabled"""
         if self.auto_copy_enabled.get() and content:
             pyperclip.copy(content)
-            # Show a brief status message
-            self.root.after(100, lambda: messagebox.showinfo("Auto-copied", "Output automatically copied to clipboard!", parent=self.root))
+            # Show status message instead of popup
+            self.show_status_message("✓ Output automatically copied to clipboard")
 
     def encode_action(self):
         raw = self.input_text.get("1.0", "end").strip()
@@ -232,7 +246,7 @@ class AntiAntiPlagiarismApp:
         content = self.output_text.get("1.0", "end").strip()
         if content:
             pyperclip.copy(content)
-            messagebox.showinfo("Copied", "Text copied to clipboard.")
+            self.show_status_message("✓ Text copied to clipboard")
         else:
             messagebox.showwarning("Nothing to copy", "Output area is empty.")
 
