@@ -59,9 +59,9 @@ The GUI includes a **Decode** button that restores previously encoded texts to t
 
 ---
 
-## 🔄 Improvements in `antiantiplagiarism.py`
+## 🛠 Improvements in `antiantiplagiarism.py`
 
-The updated CLI script is functionally the same as `[antiantiplagiarism.py](https://github.com/tikene/AntiAntiPlagiarism/blob/main/antiantiplagiarism.py)`, but with one key improvement:
+The updated CLI script is functionally the same as [antiantiplagiarism.py](https://github.com/tikene/AntiAntiPlagiarism/blob/main/antiantiplagiarism.py), but with one key improvement:
 
 - ✅ **Automatic clipboard support**  
   After encoding, the output is automatically copied to the clipboard (if `pyperclip` is installed).  
